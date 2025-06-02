@@ -1,0 +1,80 @@
+import discord
+import os
+from discord.ext import commands
+
+# Configurazione
+TOKEN = "MTM3OTEwNjA3MzMyNzMwODg0MA.GYVHdC.Sp4qXMrbnvwc_BIHJmR-S9_DxrKVxqwUAD9Adk"  # Sostituisci con il token del tuo bot
+PREFIX = "!"  # Prefisso per i comandi (es. !ping)
+
+# Crea il bot
+bot = commands.Bot(command_prefix=PREFIX, intents=discord.Intents.all())
+
+# Evento: Quando il bot è pronto
+@bot.event
+async def on_ready():
+    print(f"Bot pronto! Loggato come {bot.user.name}")
+
+
+#Riavvia il bot
+@bot.command()
+@commands.is_owner()
+async def riavvia(ctx):
+    """Riavvia il bot"""
+    await ctx.send("🔄 Riavvio in corso...")
+    #os.system("python bot.py &")  # Linux/macOS
+    os.system("python bot.py")  # Windows
+    await ctx.send("Bot riavviato!")
+    await bot.close() # Chiude il bot dopo il riavvio
+
+# Aggiungi questo comando per debug
+@bot.command()
+async def debug(ctx):
+    """Mostra i comandi registrati"""
+    registered = [f"!{cmd.name}" for cmd in bot.commands]
+    await ctx.send(f"Comandi registrati: {', '.join(registered)}")
+
+# Comando base: !ping
+@bot.command()
+async def ping(ctx):
+    await ctx.send("Pong!")  # Risponde "Pong!" quando scrivi !ping
+
+# Comando con argomento: !saluta <nome>
+@bot.command()
+async def saluta(ctx, nome: str):
+    await ctx.send(f"Ciao, {nome}!")
+
+
+@bot.command()
+async def comandi(ctx):
+    """Mostra tutti i comandi disponibili con una descrizione."""
+    embed = discord.Embed(
+        title="📜 Lista Comandi Disponibili",
+        description="Ecco tutti i comandi che puoi usare:",
+        color=discord.Color.blue()
+    )
+    
+    for command in bot.commands:
+        if not command.hidden:
+            # Costruisce la sintassi del comando
+            params = [f"<{param}>" for param in command.clean_params]
+            syntax = f"!{command.name} {' '.join(params)}"
+            
+            # Usa la docstring come descrizione o un testo predefinito
+            description = command.help or "Nessuna descrizione disponibile"
+            
+            # Aggiunge il campo all'embed
+            embed.add_field(
+                name=syntax,
+                value=description,
+                inline=False
+            )
+    
+    # Aggiunge footer con informazioni utili
+    embed.set_footer(text=f"Richiesto da {ctx.author.display_name}", icon_url=ctx.author.avatar.url)
+    
+    await ctx.send(embed=embed)
+
+
+
+# Avvia il bot
+bot.run(TOKEN)
